@@ -1,4 +1,5 @@
 Docker compose for run pritunl server in docker.
+"Click, click, finish" solution for run openvpn server in docker.
 Makefile command `build` builds pritunl container.
 On first run webgui will ask about key, Makefile command `key` will gen it for you
 For generate initial admin pass run command Makefile `pass` command
