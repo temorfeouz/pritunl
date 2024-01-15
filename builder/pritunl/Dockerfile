@@ -26,6 +26,4 @@ RUN rm -rf *${VERSION}*; rm -rf /tmp/* /var/cache/apk/*; rm -rf /root/go/*; rm -
 RUN sed -i -e '/^attributes/a prompt\t\t\t= yes' /etc/ssl/openssl.cnf
 RUN sed -i -e '/countryName_max/a countryName_value\t\t= US' /etc/ssl/openssl.cnf
 
-ADD . /
-
 ENTRYPOINT ["pritunl", "start"]

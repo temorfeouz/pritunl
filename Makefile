@@ -6,6 +6,10 @@ build:
 	docker-compose build
 exec-pritunl:
 	docker run -it --entrypoint sh pritunl
+start:
+	docker-compose start
+stop:
+	docker-compose stop
 up:
 	docker-compose up
 down:
