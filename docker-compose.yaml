@@ -53,6 +53,21 @@ services:
       - ./runtime/adguardhome/work:/opt/adguardhome/work
       - ./runtime/adguardhome/conf:/opt/adguardhome/conf
     privileged: true
+  sharebox:
+    container_name: sharebox
+    build:
+      context: .
+      dockerfile: builder/sharebox/Dockerfile
+    command: ["-dir", "/tmp/sharebox"]
+    image: sharebox
+    restart: unless-stopped
+    networks:
+      pritunl:
+        ipv4_address: 172.172.172.4
+    ports:
+      - "4505:4505"
+    volumes:
+      - ./runtime/sharebox:/tmp/sharebox
 networks:
   pritunl:
     ipam:
