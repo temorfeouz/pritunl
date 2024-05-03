@@ -53,21 +53,37 @@ services:
       - ./runtime/adguardhome/work:/opt/adguardhome/work
       - ./runtime/adguardhome/conf:/opt/adguardhome/conf
     privileged: true
-  sharebox:
-    container_name: sharebox
+#  sharebox:
+#    container_name: sharebox
+#    build:
+#      context: .
+#      dockerfile: builder/sharebox/Dockerfile
+#    command: ["-dir", "/tmp/sharebox","-addr","0.0.0.0:80"]
+#    image: sharebox
+#    restart: unless-stopped
+#    networks:
+#      pritunl:
+#        ipv4_address: 172.172.172.4
+#    ports:
+#      - "80:80"
+#    volumes:
+#      - ./runtime/sharebox:/tmp/sharebox
+  gocho:
+    container_name: gocho
     build:
       context: .
-      dockerfile: builder/sharebox/Dockerfile
-    command: ["-dir", "/tmp/sharebox","-addr","0.0.0.0:80"]
-    image: sharebox
+      dockerfile: builder/gocho/Dockerfile
+    command: ["start", "-dir", "/tmp","-id","VPN-Share", "-interface","172.172.172.5", "-local-port","81", "-share-port","80"]
+    image: gocho
     restart: unless-stopped
     networks:
       pritunl:
-        ipv4_address: 172.172.172.4
+        ipv4_address: 172.172.172.5
     ports:
       - "80:80"
+      - "81:81"
     volumes:
-      - ./runtime/sharebox:/tmp/sharebox
+      - ./runtime/gocho:/tmp
 networks:
   pritunl:
     ipam:

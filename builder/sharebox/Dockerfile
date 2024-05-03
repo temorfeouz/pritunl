@@ -27,8 +27,6 @@ RUN apk --no-cache add git
 COPY --from=src /tmp/sharebox/. /go/src/github.com/bleenco/sharebox/
 COPY --from=ui /app/ui/dist /go/src/github.com/bleenco/sharebox/dist
 
-RUN ls -la /go/src/github.com/bleenco/sharebox/
-
 RUN mkdir /go/src/github.com/jteeuwen && cd /go/src/github.com/jteeuwen && git clone https://github.com/jteeuwen/go-bindata.git && cd go-bindata \
     && go mod init github.com/jteeuwen/go-bindata && go mod tidy && cd go-bindata && go build . && mv go-bindata /usr/bin/go-bindata
 
