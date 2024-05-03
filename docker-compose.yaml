@@ -58,14 +58,14 @@ services:
     build:
       context: .
       dockerfile: builder/sharebox/Dockerfile
-    command: ["-dir", "/tmp/sharebox"]
+    command: ["-dir", "/tmp/sharebox","-addr","0.0.0.0:80"]
     image: sharebox
     restart: unless-stopped
     networks:
       pritunl:
         ipv4_address: 172.172.172.4
     ports:
-      - "4505:4505"
+      - "80:80"
     volumes:
       - ./runtime/sharebox:/tmp/sharebox
 networks:
