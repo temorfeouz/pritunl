@@ -1,33 +1,64 @@
-version: '3'
 services:
-  mongo:
-    container_name: mongo
-    image: mongo:7.0.4
+  xui:
+    container_name: x-ui
+    image: enwaiax/x-ui:latest
     restart: unless-stopped
+    privileged: true
     networks:
       pritunl:
-        ipv4_address: 172.172.172.2
+        ipv4_address: 172.172.172.6
     ports:
-      - "27017:27017"
+      - "54321:54321"
+      - "443:443"
     volumes:
-      -  ./runtime/mongo/db:/data/db
+      - ./runtime/xui/db/:/etc/x-ui/
+      - ./runtime/xui/cert/:/root/cert/
+
   pritunl:
     container_name: pritunl
-    build:
-      context: .
-      dockerfile: builder/pritunl/Dockerfile
-    image: pritunl
+    image: ghcr.io/jippi/docker-pritunl
     restart: unless-stopped
+    privileged: true
+    dns:
+      - 172.172.172.3
     depends_on:
       - mongo
     networks:
       pritunl:
         ipv4_address: 172.172.172.1
+    environment:
+      - PRITUNL_MONGODB_URI=mongodb://mongo:27017/pritunl
     ports:
       - "12281:80"
       - "12282:443"
-      - "15414:15414/udp"
-    privileged: true
+      - "10150:10150/udp" #openvpn
+      - "10151:10151/udp" #wireguard
+    volumes:
+        - ./runtime/pritunl/etc:/etc/pritunl
+        - ./runtime/pritunl/lib:/var/lib/pritunl
+        - ./runtime/pritunl/mongodb:/var/lib/mongodb
+
+  wireguard:      
+    image: ghcr.io/wg-easy/wg-easy:15
+    container_name: wireguard
+    volumes:
+      - ./runtime/wireguard/etc:/etc/wireguard
+      - ./runtime/wireguard/modules:/lib/modules:ro
+    ports:
+      - "51820:51820/udp"
+      - "12283:51821/tcp"
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+      # - NET_RAW # ⚠️ Uncomment if using Podman
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv6.conf.all.forwarding=1
+      - net.ipv6.conf.default.forwarding=1
+
   adguardhome:
     container_name: adguardhome
     image: adguard/adguardhome
@@ -53,39 +84,45 @@ services:
       - ./runtime/adguardhome/work:/opt/adguardhome/work
       - ./runtime/adguardhome/conf:/opt/adguardhome/conf
     privileged: true
-#  sharebox:
-#    container_name: sharebox
-#    build:
-#      context: .
-#      dockerfile: builder/sharebox/Dockerfile
-#    command: ["-dir", "/tmp/sharebox","-addr","0.0.0.0:80"]
-#    image: sharebox
-#    restart: unless-stopped
-#    networks:
-#      pritunl:
-#        ipv4_address: 172.172.172.4
-#    ports:
-#      - "80:80"
-#    volumes:
-#      - ./runtime/sharebox:/tmp/sharebox
-  gocho:
-    container_name: gocho
-    build:
-      context: .
-      dockerfile: builder/gocho/Dockerfile
-    command: ["start", "-dir", "/tmp","-id","VPN-Share", "-interface","172.172.172.5", "-local-port","81", "-share-port","80"]
-    image: gocho
+
+  mongo:
+    container_name: mongo
+    image: mongo:4
     restart: unless-stopped
     networks:
       pritunl:
-        ipv4_address: 172.172.172.5
+        ipv4_address: 172.172.172.2
     ports:
-      - "80:80"
-      - "81:81"
+      - "27017:27017"
     volumes:
-      - ./runtime/gocho:/tmp
+      -  ./runtime/mongo/db:/data/db
+
+  cloudreve:
+    image: cloudreve/cloudreve:latest
+    container_name: cloudreve-backend
+    depends_on:
+      - redis
+    restart: always
+    ports:
+      - 5212:5212
+    environment:
+      - CR_CONF_Database.Type=sqlite
+      - CR_CONF_Redis.Server=redis:6379
+    networks:
+      pritunl:
+    volumes:
+      - ./runtime/cloudreve/data:/cloudreve/data
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    networks:
+      pritunl:
+    volumes:
+      - ./runtime/redis/data:/data
+
 networks:
   pritunl:
     ipam:
       config:
-        - subnet: 172.172.172.0/16
+        - subnet: 172.172.0.0/16

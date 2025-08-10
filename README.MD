@@ -20,4 +20,3 @@ Pay attention exposed port in docker-compose file with comment '# DASHBOARD' and
 Internal ip bind to 172.172.172.3
 For configuring leave default port config during configuration on 172.172.172.3:3000
 
-
