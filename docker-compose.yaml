@@ -14,6 +14,34 @@ services:
       - ./runtime/xui/db/:/etc/x-ui/
       - ./runtime/xui/cert/:/root/cert/
 
+  ikev2:
+    image: hwdsl2/ipsec-vpn-server:latest
+    container_name: ikev2-vpn
+    privileged: true
+    ports:
+      - "500:500/udp"
+      - "4500:4500/udp"
+    volumes:
+      - ./runtime/ikev2/data:/etc/ipsec.d
+      - ./runtime/ikev2/lib/modules:/lib/modules:ro
+    env_file:
+      - ikev2.env
+
+  # strongman:
+  #   image: ghcr.io/kennethkoffi/strongman:latest
+  #   build:
+  #     context: .
+  #     dockerfile: builder/strongman/Dockerfile
+  #   container_name: strongman-ui
+  #   ports:
+  #     - "1515:1515"
+  #   volumes:
+  #     - ./runtime/ikev2/data:/etc/ipsec.d
+  #   env_file:
+  #     - strongman.env
+  #   depends_on:
+  #     - ikev2
+
   pritunl:
     container_name: pritunl
     image: ghcr.io/jippi/docker-pritunl
@@ -34,11 +62,11 @@ services:
       - "10150:10150/udp" #openvpn
       - "10151:10151/udp" #wireguard
     volumes:
-        - ./runtime/pritunl/etc:/etc/pritunl
-        - ./runtime/pritunl/lib:/var/lib/pritunl
-        - ./runtime/pritunl/mongodb:/var/lib/mongodb
+      - './runtime/pritunl/etc:/etc/pritunl'
+      - './runtime/pritunl/lib:/var/lib/pritunl'
+      - './runtime/pritunl/mongodb:/var/lib/mongodb'
 
-  wireguard:      
+  wireguard:
     image: ghcr.io/wg-easy/wg-easy:15
     container_name: wireguard
     volumes:
@@ -67,19 +95,19 @@ services:
       pritunl:
         ipv4_address: 172.172.172.3
     ports:
-#      - "53:53/tcp" # plain DNS.
-#      - "53:53/udp"
-#     - "67:67/udp" #add if you intend to use AdGuard Home as a DHCP server.
-#      - "68:68"
-#      - "80:80/tcp" #add if you are going to use AdGuard Home's admin panel as well as run AdGuard Home as an HTTPS/DNS-over-HTTPS server.
-#      - "443:443"
+      #      - "53:53/tcp" # plain DNS.
+      #      - "53:53/udp"
+      #     - "67:67/udp" #add if you intend to use AdGuard Home as a DHCP server.
+      #      - "68:68"
+      #      - "80:80/tcp" #add if you are going to use AdGuard Home's admin panel as well as run AdGuard Home as an HTTPS/DNS-over-HTTPS server.
+      #      - "443:443"
       - "3000:3000/tcp" # first install webgui
       - "12280:80" # DASHBOARD
-#      - "853:853/tcp" #add if you are going to run AdGuard Home as a DNS-over-TLS server.
-#      - "784:784/udp"
-#      - "853:853/udp"
-#      - "8853:8853/udp" #add if you are going to run AdGuard Home as a DNS-over-QUIC server. You may only leave one or two of these
-#      - "5443:5443" #add if you are going to run AdGuard Home as a DNSCrypt server.
+    #      - "853:853/tcp" #add if you are going to run AdGuard Home as a DNS-over-TLS server.
+    #      - "784:784/udp"
+    #      - "853:853/udp"
+    #      - "8853:8853/udp" #add if you are going to run AdGuard Home as a DNS-over-QUIC server. You may only leave one or two of these
+    #      - "5443:5443" #add if you are going to run AdGuard Home as a DNSCrypt server.
     volumes:
       - ./runtime/adguardhome/work:/opt/adguardhome/work
       - ./runtime/adguardhome/conf:/opt/adguardhome/conf
